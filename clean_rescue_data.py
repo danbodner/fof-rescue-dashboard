@@ -35,7 +35,7 @@ df = pd.concat(
 print(df.columns)
 
 
-# In[68]:
+# In[93]:
 
 
 #Column cleanup
@@ -45,7 +45,7 @@ df["Timestamp"] = pd.to_datetime(
     df["Timestamp"],
     errors="coerce"
 )
-print(df.head())
+#print(df.head())
 
 
 # In[47]:
@@ -59,7 +59,7 @@ df["Intake From"] = (
 )
 
 
-# In[48]:
+# In[92]:
 
 
 #Create map for intake locations
@@ -70,9 +70,19 @@ intake_map = {
 
     "Knox": "Knox County",
     "Knox County": "Knox County",
+    "Knox-Whitley": "Knox County",
+    "Knox- Whitley": "Knox County",
+    "Knox-Whitley Humane": "Knox County",
+
+    "Drop-Off": "Drop Off",
+
+    "House Rescue": "Home Rescue",
+    "Rescue Situation": "Home Rescue",
 
     "Lancaster": "Garrard County",
     "Eva": "Owner Surrender",
+
+    "Animal Care Stanford": "Stanford",
 
     "Rescue": "Transfer From Rescue",
     "Surrender": "Owner Surrender",
@@ -355,8 +365,8 @@ df["Intake To"] = (
 
 intake_to_map = {
     "Barn": "Barn",
-    "Foster Ky": "Foster KY",
-    "Foster Ny": "Foster NY",
+    "Foster Ky": "Foster",
+    "Foster Ny": "Foster",
     "Foster": "Foster",
     "Boarding/Vet": "Boarding/Vet",
 
@@ -528,4 +538,64 @@ df.to_csv("cleaned_rescue_data.csv", index=False)
 
 print("Export complete!")
 print(f"{len(df)} records exported.")
+
+
+# In[88]:
+
+
+import gspread
+from google.oauth2.service_account import Credentials
+
+
+# In[89]:
+
+
+scopes = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
+creds = Credentials.from_service_account_file(
+    r"C:\Users\jdbod\Documents\FOF\save-2-live-dashboard-02abaa89d293.json",
+    scopes=scopes
+)
+
+gc = gspread.authorize(creds)
+
+
+# In[90]:
+
+
+sheet = gc.open("Save 2 Live Dashboard Data")
+
+print(sheet.title)
+
+
+# In[91]:
+
+
+from gspread_dataframe import set_with_dataframe
+
+# Open or create the output worksheet
+try:
+    worksheet = sheet.worksheet("Cleaned Data")
+except gspread.WorksheetNotFound:
+    worksheet = sheet.add_worksheet(
+        title="Cleaned Data",
+        rows=1000,
+        cols=50
+    )
+
+# Clear old data
+worksheet.clear()
+
+# Write cleaned dataframe to Google Sheets
+set_with_dataframe(
+    worksheet,
+    df,
+    include_index=False
+)
+
+print("Cleaned data exported to Google Sheets.")
+print(f"{len(df)} rows exported.")
 
