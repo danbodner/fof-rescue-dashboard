@@ -550,23 +550,31 @@ from google.oauth2.service_account import Credentials
 # In[89]:
 
 
+import os
+import json
+from google.oauth2.service_account import Credentials
+
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file(
-    r"C:\Users\jdbod\Documents\FOF\save-2-live-dashboard-02abaa89d293.json",
-    scopes=scopes
-)
+if os.getenv("GOOGLE_CREDENTIALS"):
+    creds_dict = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=scopes
+    )
+else:
+    creds = Credentials.from_service_account_file(
+        "credentials.json",
+        scopes=scopes
+    )
 
 gc = gspread.authorize(creds)
 
-
-# In[90]:
-
-
 sheet = gc.open("Save 2 Live Dashboard Data")
+worksheet = sheet.worksheet("Cleaned Data")
 
 print(sheet.title)
 
